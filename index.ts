@@ -12,17 +12,16 @@ const server = new Server({
   verbose: true,
   prepareRequestFunction: async (options) => {
     const { request, hostname, port } = options;
-    let upstreamProxyUrl;
-    try {
-      const proxyIp = await provider.getIp(
-        request.url ?? `${hostname}:${port}`
-      );
-      upstreamProxyUrl = proxyIp.toURL();
-    } catch (error: any) {
-      console.log(ono(error, "获取ip时发生异常，已切换到默认代理"));
-    }
+
+    const proxyIp = await provider
+      .getIp(request.url ?? `${hostname}:${port}`)
+      .catch((error) => {
+        console.log(ono(error, "获取ip时发生异常，已切换到默认代理"));
+        return undefined;
+      });
+
     return {
-      upstreamProxyUrl,
+      upstreamProxyUrl: proxyIp?.toURL(),
     };
   },
 });
